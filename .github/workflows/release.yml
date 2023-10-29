@@ -1,0 +1,47 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Release
+
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Write Version to File
+        run: echo "global version := `"${{  github.ref_name }}`"" > version.ahk
+
+      - name: Zip
+        uses: TheDoctor0/zip-release@0.6.2
+        with:
+          filename: fasttravel.zip
+          exclusions: '*.git*'
+
+      - name: Release Zip
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: fasttravel.zip
+
+      - name: Ahk2Exe
+        uses: nekocodeX/GitHub-Action-Ahk2Exe@v1.1.0
+        with:
+          in: fasttravel.ahk
+          base: Unicode 64-bit
+
+      - name: Relase Binary
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: fasttravel.exe
+
+
