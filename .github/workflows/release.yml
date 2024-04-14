@@ -29,7 +29,7 @@ jobs:
           exclusions: '*.git*'
 
       - name: Release Zip
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@v3
         with:
           file: fasttravel.zip
 
