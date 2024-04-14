@@ -17,6 +17,7 @@ InitializeMenu() {
 	Menu, Tray, Disable, 1&
 	Menu, Tray, Add
 	Menu, Tray, Add, Options, Options
+	Menu, Tray, Add, Show logs, ShowLogs
 	Menu, Tray, Add
 	Menu, Tray, Add, Exit, Exit
 }
@@ -90,6 +91,10 @@ Options() {
 	settings.CommitToGui()
 }
 
+ShowLogs() {
+    Run % "explorer " . log.GetFolder()
+}
+
 ; Options actions
 
 OptionsSave() {
@@ -148,37 +153,44 @@ class CSettings {
 		}
 	}
 
-	_read(val, name) {
-		IniRead, OutputVar, % this.FileName, General, % name, % val
+	_read(defaultVal, name) {
+		IniRead, OutputVar, % this.FileName, General, % name, % defaultVal
+		log.Settings(name . "=" . OutputVar)
 		return OutputVar
 	}
 
 	Load() {
+		log.Settings("Loading settings")
 		this.KeyBaseDelay := this._read(this.KeyBaseDelay, "KeyBaseDelay")
 		this.KeyPressDuration := this._read(this.KeyPressDuration, "KeyPressDuration")
 		this.KeyDelay := this._read(this.KeyDelay, "KeyDelay")
 
 		this.HomeDc := this._read(this.HomeDc, "HomeDc")
 
-		IniRead, DefaultWorlds, % this.FileName, General, DefaultWorlds, %A_Space%
+		DefaultWorlds = this._read("", "DefaultWorlds")
 		if (DefaultWorlds == "") {
 			this.DefaultWorlds := []
 		} else {
 			this.DefaultWorlds := StrSplit(DefaultWorlds, ",")
 		}
+	}
 
+	_write(val, name) {
+		IniWrite, % val, % this.FileName, General, % name
+		log.Settings(name . "=" . val)
 	}
 
 	Save() {
+        log.Settings("Saving settings")
 		if (!FileExist(this.Path)) {
 			FileCreateDir, % this.Path
 		}
 
-		IniWrite, % this.KeyBaseDelay, % this.FileName, General, KeyBaseDelay
-		IniWrite, % this.KeyPressDuration, % this.FileName, General, KeyPressDuration
-		IniWrite, % this.KeyDelay, % this.FileName, General, KeyDelay
+		this._write(this.KeyBaseDelay, "KeyBaseDelay")
+		this._write(this.KeyPressDuration, "KeyPressDuration")
+		this._write(this.KeyDelay, "KeyDelay")
 
-		IniWrite, % this.HomeDc, % this.FileName, General, HomeDc
+		this._write(this.HomeDc, "HomeDc")
 
 		DefaultWorlds := ""
 		for idx, world in this.DefaultWorlds {
@@ -187,7 +199,7 @@ class CSettings {
 			}
 			DefaultWorlds := DefaultWorlds . world
 		}
-		IniWrite, % DefaultWorlds, % this.FileName, General, DefaultWorlds
+		this._write(DefaultWorlds, "DefaultWorlds")
 	}
 
 	CommitFromGui() {

@@ -10,6 +10,7 @@ CoordMode, Mouse, Screen
 
 
 #Include version.ahk
+#Include debuglog.ahk
 #Include travellog.ahk
 #Include menu.ahk
 #Include pcap.ahk
@@ -41,8 +42,6 @@ InitializeOptionsGui()
 
 SetTimer, Update, 500
 
-
-
 Update() {
 	dataCenters.Update()
 	guic.Update()
@@ -60,7 +59,7 @@ TabHK() {
 Hotkey, ^!+p, ShowGuiHK
 Hotkey, ^!+p, Off
 ShowGuiHK() {
-	Gui, DcSelect:New ,-SysMenu ToolWindow
+	Gui, DcSelect:New ,-SysMenu ToolWindow -Caption +0x80880000
 	Gui, DcSelect:Add, Text,, Select DC you want to travel to:
 	for i, name in dataCenters.DcList() {
 		if (InStr(name, "-->")) {
@@ -89,6 +88,7 @@ ShowGuiHK() {
 
 ; restart script hotkey
 ^!+o::
+    log.UserInput("Restart script")
 	BlockInput, MouseMoveOff
 	SoundPlay, *64
 	Reload
@@ -97,6 +97,7 @@ ShowGuiHK() {
 
 SafeSend(keys*) {
     for i, key in keys {
+        log.AppInput("Sending key: " . key)
 		if (key == "LEFT") {
 			SendToFF("^!+{Left}")
 			SendToFF("{Numpad4}")
@@ -402,5 +403,6 @@ class DataCenter {
 
 Close() {
 	detector.Close()
+	log.Close()
 }
 

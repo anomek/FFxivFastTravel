@@ -1,4 +1,5 @@
-﻿global GLOBAL_HOST := new IpAddr(124, 150, 157, 190)
+﻿; global GLOBAL_HOST := new IpAddr(124, 150, 157, 190)
+global GLOBAL_HOST := new IpAddr(119, 252, 36, 135)
 
 global AETHER_HOST := new IpAddr(204, 2, 29, 6)
 global CRYSTAL_HOST := new IpAddr(204, 2, 29, 8)
@@ -7,6 +8,7 @@ global PRIMAL_HOST := new IpAddr(204, 2, 29, 7)
 
 global MAX_KEEP_ALIVE_DELAY = 30*1000
 
+#Include  detectionconditions.ahk
 
 CreateDetector(areas) {
 	static detector
@@ -46,6 +48,10 @@ class IpAddr {
 
 }
 
+IpAddrFromInt(val) {
+    return new IpAddr(val & 0xff, (val >> 8) & 0xff, (val >> 16) & 0xff, (val >> 24))
+}
+
 
 class CArea {
 
@@ -62,6 +68,7 @@ class CArea {
 
 class Events {
 
+    static DUMMY := 5
 	static TRAVEL_COMPLETE := 0 
 	static TRAVEL_INFO := 1
 	static WORLDLIST := 2
@@ -69,25 +76,34 @@ class Events {
 	static CONNECTED_TO_DC := 4
 
 	__New() {
-		this.PacketProcessors := {(Events.TRAVEL_COMPLETE): ConstSizePacket(365)
-			, (Events.TRAVEL_INFO): ConstSizePacket(342)
+		this.PacketProcessors := {(Events.DUMMY): PacketReceived()
+		    , (Events.TRAVEL_COMPLETE): Any(Filtered(ConstSizePacket(365), PacketReceived())
+		                                    , Filtered(FromAddr(GLOBAL_HOST), NoPacketsReceivedFor(7000))
+		                                    , Filtered(Not(FromAddr(GLOBAL_HOST)), PacketReceived()))
+			, (Events.TRAVEL_INFO):     Filtered(ConstSizePacket(342), PacketReceived())
 ;			, (Events.WORLDLIST): 
-			, (Events.RETURN_HOME): new RangeSizePacket(607, 680)
-			, (Events.CONNECTED_TO_DC): new DelayAfterLastPacket(3000, new BigPacket(1500)) }
+			, (Events.RETURN_HOME):     Filtered(BigPacket(1000), PacketReceived())
+			, (Events.CONNECTED_TO_DC): Filtered(BigPacket(1500), NoPacketsReceivedFor(3000)) }
+		this.processor := 0
 	}
 	
 	Process(packet) {
-		for index, processor in this.PacketProcessors {
-			processor.Process(packet)
-		}
+	    log.Packet("Received packet (addr=" . IpAddrFromInt(packet.GetSrcIpAddress()).Str()  . ", size=" . packet.GetLen() . ")")
+	    if (this.processor != 0) {
+            log.Conditions("Processin packet: " . this.processorEvent)
+	        this.processor.Process(packet)
+	    }
 	}
 	
 	WaitFor(event) {
-		processor := this.PacketProcessors[event]
-		processor.Reset()
-		while(!processor.IsSet()) {
+	    log.Travel("Waiting for event " . event)
+		this.processor := this.PacketProcessors[event]
+		this.processorEvent := event
+		this.processor.Reset()
+		while(!this.processor.IsSet()) {
 			Sleep, 1000
 		}
+		this.processor := 0
 	}
 
 	debug() {
@@ -98,100 +114,6 @@ class Events {
 		return str
 	}
 }
-
-ConstSizePacket(size) {
-	return new RangeSizePacket(size, size)
-}
-
-
-class RangeSizePacket {
-	__New(min, max) {
-		this.min := min
-		this.max := max
-	}
-	
-	Process(packet) {
-		if (packet.GetLen() >= this.min && packet.GetLen() <= this.max) {
-			this.active := 1
-		}
-	}
-	
-	Reset() {
-		this.active := 0
-	}
-	
-	IsSet() {
-		return this.active == 1
-	}
-}
-
-
-class ConstSizePacket {
-	__New(size) {
-		this.size := size
-	}
-
-	Process(packet) {
-		if (packet.GetLen() == this.size) {
-			this.active := 1
-		}
-	}
-	
-	Reset() {
-		this.active := 0
-	}
-	
-	IsSet() {
-		return this.active == 1
-	}
-}
-
-class BigPacket {
-
-	__New(minSize) {
-		this.minSize := minSize
-	}
-	
-	Process(packet) {
-		if (packet.GetLen() >= this.minSize) {
-			this.active := 1
-		}
-	}
-	
-	Reset() {
-		this.active := 0
-	}
-	
-	IsSet() {
-		return this.active == 1
-	}
-}
-
-class DelayAfterLastPacket {
-
-	__New(delay, other) {
-		this.other := other
-		this.delay := delay
-		this.lastPacket := -1
-	}
-	
-	Process(packet) {
-		this.other.Reset()
-		this.other.Process(packet)
-		if (this.other.IsSet()) {
-			this.lastPacket := A_TickCount
-		}
-	}
-	
-	Reset() {
-		this.lastPacket := -1
-	}
-	
-	IsSet() {
-		return this.lastPacket != -1 && this.lastPacket + this.delay < A_TickCount
-	}
-}
-
 
 class CDetector {
 
@@ -232,7 +154,7 @@ class CDetector {
 			addr := packet.GetSrcIpAddress()
 			if (addr == area.Addr.Int()) {
 				area.Update()
-				travelLog.Debug("On " + area.Name)
+				travelLog.Debug("On " . area.Name)
 			}
 		}
 	}

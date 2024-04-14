@@ -23,8 +23,11 @@ class CTravelLog {
 
 		Gui, TravelLog:Font, s8
 		Gui, TravelLog:Add, Text, vHelpText r2, XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	    ;Gui, TravelLog:Add, Button, Default w80, OK
 
 		; Gui, TravelLog:Add, Text, vdebugText, XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+		Gui, TravelLog:Show, NoActivate x10 y10
 	}
 
 	Debug(var) {
@@ -33,34 +36,42 @@ class CTravelLog {
 	}
 
 	SetNavigatingToSelectWorld() {
+	    log.Travel("Navigating to select world")
 		GuiControl, TravelLog:Text, statusText, Navigating to Select World menu
 	}
 
 	SetWaitingForSelectWorld() {
+	    log.Travel("Waiting for select world")
 		GuiControl, TravelLog:Text, statusText, Waiting for Select World menu
 	}
 
 	SetSelectingWorld() {
+	    log.Travel("Selecting world")
 		GuiControl, TravelLog:Text, statusText, Selecting destination
 	}
 
 	SetWaitingForTravelConfirmation() {
+	    log.Travel("Waiting for travel confirmation")
 		GuiControl, TravelLog:Text, statusText, Waiting for travel confirmation menu
 	}
 
 	SetAcceptingTravel() {
+	    log.Travel("Accepting travel")
 		GuiControl, TravelLog:Text, statusText, Confirming the travel
 	}
 
 	SetTravelingTo(dest) {
+	    log.Travel("Traveling to " . dest)
 		GuiControl, TravelLog:Text, statusText, Traveling to %dest%
 	}
 
 	SetConfirmingDataCenterArrival() {
+	    log.Travel("Confirming data center arrival")
 		GuiControl, TravelLog:Text, statusText, Confirming Data Center arrival
 	}
 
 	SetConnectingToDataCenter() {
+	    log.Travel("Connecting to data center")
 		GuiControl, TravelLog:Text, statusText, Connecting to Data Center
 	}
 
@@ -71,6 +82,7 @@ class CTravelLog {
 	}
 
 	StartTravel(from, to) {
+	    log.Travel("Start travel from " . from . " to " . to)
 		GuiControl, TravelLog:Text, travelText, % from . " -> " . to
 		GuiControl, TravelLog:Text, helpText, Press CTRL + SHIFT + ALT + O`nto return mouse control and stop travel
 		Gui, TravelLog:Show, NoActivate x10 y10
