@@ -6,7 +6,7 @@ Either of them requires [Npcap](https://npcap.com) installed. If you use ACT you
 
 ## Standalone executable
 
-1. Download and run [fasttravel.exe](https://github.com/lukaszrek/FFxivFastTravel/releases/latest/download/fasttravel.exe).
+1. Download and run [fasttravel.exe](https://github.com/anomek/FFxivFastTravel/releases/latest/download/fasttravel.exe).
 
 
 ## AutoHotkey Script
@@ -14,7 +14,7 @@ Either of them requires [Npcap](https://npcap.com) installed. If you use ACT you
 Alternatively you can run fasttravel as a AutoHotkey script:
 
 1. Download and instal [AutoHotkey](https://www.autohotkey.com)
-1. Download [fasttravel.zip](https://github.com/lukaszrek/FFxivFastTravel/releases/latest/download/fasttravel.zip).
+1. Download [fasttravel.zip](https://github.com/anomek/FFxivFastTravel/releases/latest/download/fasttravel.zip).
 1. Extract somewhere
 1. Double click fasttravel.ahk to run it
 
